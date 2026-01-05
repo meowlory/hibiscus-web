@@ -15,9 +15,14 @@ if (!globalForPrisma.pool) {
 
   globalForPrisma.pool = new Pool({
     connectionString,
-    ssl: {
-      rejectUnauthorized: false, // Required for Supabase
-    },
+    ssl: process.env.NODE_ENV === 'production'
+      ? { rejectUnauthorized: false }
+      : { rejectUnauthorized: false },
+  });
+
+  // Set connection error handling
+  globalForPrisma.pool.on('error', (err) => {
+    console.error('Unexpected error on idle client', err);
   });
 }
 
