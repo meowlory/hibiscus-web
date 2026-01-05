@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import type { Plant as PrismaPlant } from '@prisma/client';
 
 export interface Plant {
   id: number;
@@ -20,7 +21,7 @@ export async function GET() {
       },
     });
 
-    const plantsResponse: Plant[] = plants.map((plant): Plant => ({
+    const plantsResponse: Plant[] = plants.map((plant: PrismaPlant): Plant => ({
       id: plant.id,
       name: plant.name,
       description: plant.description || '',
