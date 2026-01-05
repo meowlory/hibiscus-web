@@ -1,33 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import { createPool } from '@vercel/postgres';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
-  pool: Pool | undefined;
+  pool: ReturnType<typeof createPool> | undefined;
 };
 
-// Create connection pool
+// Create connection pool using Vercel's postgres package (handles SSL properly)
 if (!globalForPrisma.pool) {
-  let connectionString = process.env.NODE_ENV === 'production'
-    ? process.env.POSTGRES_PRISMA_URL
-    : process.env.POSTGRES_URL_NON_POOLING;
-
-  // Remove sslmode parameter from connection string and handle it with pool config
-  if (connectionString) {
-    connectionString = connectionString.replace(/[?&]sslmode=require/g, '');
-  }
-
-  globalForPrisma.pool = new Pool({
-    connectionString,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  });
-
-  // Set connection error handling
-  globalForPrisma.pool.on('error', (err) => {
-    console.error('Unexpected error on idle client', err);
+  globalForPrisma.pool = createPool({
+    connectionString: process.env.POSTGRES_PRISMA_URL,
   });
 }
 
