@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { del } from '@vercel/blob';
 
 export interface BloomMetadata {
   id: number;
@@ -117,12 +118,38 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // Delete bloom from database
+    // Fetch bloom first to get blob URL for deletion
+    const bloom = await prisma.bloom.findUnique({
+      where: { id: parseInt(bloomId) },
+    });
+
+    if (!bloom) {
+      return NextResponse.json(
+        { error: 'Bloom not found' },
+        { status: 404 }
+      );
+    }
+
+    // Delete from database first
     await prisma.bloom.delete({
       where: { id: parseInt(bloomId) },
     });
 
-    return NextResponse.json({ success: true });
+    // Delete from Vercel Blob storage (non-blocking - log errors)
+    try {
+      await del(bloom.url);
+    } catch (blobError) {
+      console.error('Failed to delete blob from storage:', blobError);
+      // Continue - database deletion succeeded, blob can be cleaned up manually
+    }
+
+    return NextResponse.json({
+      success: true,
+      deleted: {
+        id: bloom.id,
+        url: bloom.url,
+      }
+    });
   } catch (error) {
     console.error('Error deleting bloom:', error);
     return NextResponse.json(

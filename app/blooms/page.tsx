@@ -15,6 +15,7 @@ export default function BloomsPage() {
   const [blooms, setBlooms] = useState<Bloom[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     fetchBlooms();
@@ -29,6 +30,42 @@ export default function BloomsPage() {
       console.error('Error fetching blooms:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (bloomId: number) => {
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this bloom photo? This action cannot be undone.'
+    );
+
+    if (!confirmed) return;
+
+    // Add to deleting set
+    setDeletingIds(prev => new Set(prev).add(bloomId));
+
+    try {
+      const response = await fetch(`/api/blooms?id=${bloomId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Delete failed' }));
+        throw new Error(errorData.error || 'Failed to delete bloom');
+      }
+
+      // Optimistic update - remove from local state
+      setBlooms(prev => prev.filter(bloom => bloom.id !== bloomId));
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete bloom. Please try again.');
+    } finally {
+      // Remove from deleting set
+      setDeletingIds(prev => {
+        const next = new Set(prev);
+        next.delete(bloomId);
+        return next;
+      });
     }
   };
 
@@ -116,29 +153,66 @@ export default function BloomsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {blooms.map((bloom) => (
-              <div
-                key={bloom.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <div className="aspect-square relative">
-                  <img
-                    src={bloom.url}
-                    alt="Hibiscus bloom"
-                    className="w-full h-full object-cover"
-                  />
+            {blooms.map((bloom) => {
+              const isDeleting = deletingIds.has(bloom.id);
+
+              return (
+                <div
+                  key={bloom.id}
+                  className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow ${
+                    isDeleting ? 'opacity-50 pointer-events-none' : ''
+                  }`}
+                >
+                  <div className="aspect-square relative group">
+                    <img
+                      src={bloom.url}
+                      alt="Hibiscus bloom"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={() => handleDelete(bloom.id)}
+                      disabled={isDeleting}
+                      aria-label="Delete this bloom photo"
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        width: '32px',
+                        height: '32px',
+                        backgroundColor: 'rgb(239, 68, 68)',
+                        color: 'white',
+                        borderRadius: '50%',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        zIndex: 999,
+                        opacity: 1,
+                      }}
+                    >
+                      ×
+                    </button>
+                    {isDeleting && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                        <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm text-gray-600">
+                      {new Date(bloom.uploadedAt).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-sm text-gray-600">
-                    {new Date(bloom.uploadedAt).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
