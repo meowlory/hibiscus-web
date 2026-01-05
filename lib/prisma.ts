@@ -1,16 +1,17 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { createPool } from '@vercel/postgres';
+import { Pool } from 'pg';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
-  pool: ReturnType<typeof createPool> | undefined;
+  pool: Pool | undefined;
 };
 
-// Create connection pool using Vercel's postgres package (handles SSL properly)
+// Create connection pool with explicit SSL handling
 if (!globalForPrisma.pool) {
-  globalForPrisma.pool = createPool({
+  globalForPrisma.pool = new Pool({
     connectionString: process.env.POSTGRES_PRISMA_URL,
+    ssl: false, // Disable SSL verification for Supabase
   });
 }
 
