@@ -98,6 +98,25 @@ export default function PlantsPage() {
     }
   };
 
+  const handleUnassignBloom = async (bloomId: number) => {
+    try {
+      const response = await fetch('/api/blooms', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bloomId, plantId: null }),
+      });
+
+      if (response.ok) {
+        await fetchData();
+      } else {
+        alert('Failed to unassign bloom');
+      }
+    } catch (error) {
+      console.error('Error unassigning bloom:', error);
+      alert('Failed to unassign bloom');
+    }
+  };
+
   const handleEditPlant = (plant: Plant) => {
     setEditingPlant(plant.id);
     setEditForm({ name: plant.name, description: plant.description });
@@ -357,12 +376,19 @@ export default function PlantsPage() {
                             key={bloom.id}
                             className="rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                           >
-                            <div className="aspect-square">
+                            <div className="aspect-square relative group">
                               <img
                                 src={bloom.url}
                                 alt={`${plant.name} bloom`}
                                 className="w-full h-full object-cover"
                               />
+                              <button
+                                onClick={() => handleUnassignBloom(bloom.id)}
+                                className="absolute top-2 right-2 w-8 h-8 bg-gray-700 hover:bg-gray-800 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-xs font-medium z-10"
+                                aria-label="Unassign bloom from plant"
+                              >
+                                ✕
+                              </button>
                             </div>
                             <div className="p-2 bg-white">
                               <p className="text-xs text-gray-600">
