@@ -7,7 +7,6 @@ interface Plant {
   id: number;
   name: string;
   description: string;
-  healthIssues: string[];
   createdAt: string;
 }
 
@@ -115,36 +114,6 @@ export default function PlantsPage() {
     } catch (error) {
       console.error('Error unassigning bloom:', error);
       alert('Failed to unassign bloom');
-    }
-  };
-
-  const handleToggleHealthIssue = async (plantId: number, issue: string) => {
-    const plant = plants.find(p => p.id === plantId);
-    if (!plant) return;
-
-    const currentIssues = plant.healthIssues || [];
-    const newIssues = currentIssues.includes(issue)
-      ? currentIssues.filter(i => i !== issue)
-      : [...currentIssues, issue];
-
-    try {
-      const response = await fetch('/api/plants', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: plantId,
-          healthIssues: newIssues,
-        }),
-      });
-
-      if (response.ok) {
-        await fetchData();
-      } else {
-        alert('Failed to update health status');
-      }
-    } catch (error) {
-      console.error('Error updating health status:', error);
-      alert('Failed to update health status');
     }
   };
 
@@ -361,28 +330,6 @@ export default function PlantsPage() {
                       )}
                     </div>
                   )}
-
-                  <div className="mb-4">
-                    <h4 className="text-lg font-medium text-gray-900 mb-3">Health</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {['Aphids', 'Root Rot', 'White Flies', 'Not Enough Sunlight', 'Other'].map((issue) => {
-                        const isSelected = plant.healthIssues?.includes(issue);
-                        return (
-                          <button
-                            key={issue}
-                            onClick={() => handleToggleHealthIssue(plant.id, issue)}
-                            className={`px-4 py-2 rounded-lg border-2 transition-colors ${
-                              isSelected
-                                ? 'bg-pink-100 border-pink-500 text-pink-700 font-medium'
-                                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                            }`}
-                          >
-                            {issue}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
 
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-3">
