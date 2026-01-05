@@ -9,16 +9,14 @@ const globalForPrisma = globalThis as unknown as {
 
 // Create connection pool
 if (!globalForPrisma.pool) {
-  // Get connection string and remove SSL mode parameter
-  let connectionString = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL;
-  if (connectionString) {
-    // Remove sslmode parameter
-    connectionString = connectionString.split('?')[0];
-  }
+  const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL;
 
   globalForPrisma.pool = new Pool({
     connectionString,
-    ssl: false, // Disable SSL completely
+    // Accept self-signed certificates from Supabase
+    ssl: {
+      rejectUnauthorized: false,
+    },
   });
 }
 
