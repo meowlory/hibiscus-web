@@ -355,13 +355,24 @@ export default function PlantsPage() {
                         {plantBlooms.map((bloom) => (
                           <div
                             key={bloom.id}
-                            className="aspect-square rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                            className="rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                           >
-                            <img
-                              src={bloom.url}
-                              alt={`${plant.name} bloom`}
-                              className="w-full h-full object-cover"
-                            />
+                            <div className="aspect-square">
+                              <img
+                                src={bloom.url}
+                                alt={`${plant.name} bloom`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="p-2 bg-white">
+                              <p className="text-xs text-gray-600">
+                                {new Date(bloom.uploadedAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })}
+                              </p>
+                            </div>
                           </div>
                         ))}
                       </div>
