@@ -26,6 +26,8 @@ export default function PlantsPage() {
   const [newPlant, setNewPlant] = useState({ name: '', description: '' });
   const [saving, setSaving] = useState(false);
   const [selectedPlant, setSelectedPlant] = useState<number | null>(null);
+  const [editingPlant, setEditingPlant] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', description: '' });
 
   useEffect(() => {
     fetchData();
@@ -93,6 +95,42 @@ export default function PlantsPage() {
     } catch (error) {
       console.error('Error assigning bloom:', error);
       alert('Failed to assign bloom');
+    }
+  };
+
+  const handleEditPlant = (plant: Plant) => {
+    setEditingPlant(plant.id);
+    setEditForm({ name: plant.name, description: plant.description });
+  };
+
+  const handleUpdatePlant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPlant || !editForm.name.trim()) return;
+
+    setSaving(true);
+    try {
+      const response = await fetch('/api/plants', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingPlant,
+          name: editForm.name,
+          description: editForm.description,
+        }),
+      });
+
+      if (response.ok) {
+        await fetchData();
+        setEditingPlant(null);
+        setEditForm({ name: '', description: '' });
+      } else {
+        alert('Failed to update plant');
+      }
+    } catch (error) {
+      console.error('Error updating plant:', error);
+      alert('Failed to update plant');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -210,14 +248,69 @@ export default function PlantsPage() {
 
               return (
                 <div key={plant.id} className="bg-white rounded-lg shadow-md p-6">
-                  <div className="mb-4">
-                    <h3 className="text-2xl font-semibold text-gray-900 mb-1">
-                      {plant.name}
-                    </h3>
-                    {plant.description && (
-                      <p className="text-gray-600">{plant.description}</p>
-                    )}
-                  </div>
+                  {editingPlant === plant.id ? (
+                    <div className="mb-4">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">Edit Plant</h3>
+                      <form onSubmit={handleUpdatePlant} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Plant Name *
+                          </label>
+                          <input
+                            type="text"
+                            value={editForm.name}
+                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Description
+                          </label>
+                          <textarea
+                            value={editForm.description}
+                            onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                            rows={3}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            disabled={saving}
+                            className="bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50"
+                          >
+                            {saving ? 'Saving...' : 'Save Changes'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingPlant(null)}
+                            className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="text-2xl font-semibold text-gray-900">
+                          {plant.name}
+                        </h3>
+                        <button
+                          onClick={() => handleEditPlant(plant)}
+                          className="text-sm text-pink-600 hover:text-pink-700 font-medium"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                      {plant.description && (
+                        <p className="text-gray-600">{plant.description}</p>
+                      )}
+                    </div>
+                  )}
 
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-3">
