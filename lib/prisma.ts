@@ -1,25 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
-  pool: Pool | undefined;
 };
 
-// Create connection pool with explicit SSL handling
-if (!globalForPrisma.pool) {
-  globalForPrisma.pool = new Pool({
-    connectionString: process.env.POSTGRES_PRISMA_URL,
-    ssl: false, // Disable SSL verification for Supabase
-  });
-}
-
-const pool = globalForPrisma.pool;
-const adapter = new PrismaPg(pool);
-
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  adapter,
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });
 
