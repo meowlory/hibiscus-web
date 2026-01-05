@@ -25,7 +25,7 @@ export async function GET() {
       id: plant.id,
       name: plant.name,
       description: plant.description || '',
-      healthIssues: Array.isArray(plant.healthIssues) ? plant.healthIssues : [],
+      healthIssues: (plant.healthIssues && Array.isArray(plant.healthIssues)) ? plant.healthIssues : [],
       createdAt: plant.createdAt.toISOString(),
     }));
 
@@ -56,7 +56,6 @@ export async function POST(request: Request) {
       data: {
         name,
         description: description || '',
-        healthIssues: [],
       },
     });
 
