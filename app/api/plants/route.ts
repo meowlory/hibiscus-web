@@ -5,7 +5,6 @@ export interface Plant {
   id: number;
   name: string;
   description: string;
-  healthIssues: string[];
   createdAt: string;
 }
 
@@ -25,7 +24,6 @@ export async function GET() {
       id: plant.id,
       name: plant.name,
       description: plant.description || '',
-      healthIssues: Array.isArray(plant.healthIssues) ? plant.healthIssues : [],
       createdAt: plant.createdAt.toISOString(),
     }));
 
@@ -56,7 +54,6 @@ export async function POST(request: Request) {
       data: {
         name,
         description: description || '',
-        healthIssues: [],
       },
     });
 
@@ -65,7 +62,6 @@ export async function POST(request: Request) {
         id: plant.id,
         name: plant.name,
         description: plant.description || '',
-        healthIssues: [],
         createdAt: plant.createdAt.toISOString(),
       },
     });
@@ -82,7 +78,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, name, description, healthIssues } = body;
+    const { id, name, description } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -109,7 +105,6 @@ export async function PATCH(request: Request) {
       data: {
         ...(name !== undefined && { name }),
         ...(description !== undefined && { description }),
-        ...(healthIssues !== undefined && { healthIssues }),
       },
     });
 
@@ -118,7 +113,6 @@ export async function PATCH(request: Request) {
         id: updatedPlant.id,
         name: updatedPlant.name,
         description: updatedPlant.description || '',
-        healthIssues: Array.isArray(updatedPlant.healthIssues) ? updatedPlant.healthIssues : [],
         createdAt: updatedPlant.createdAt.toISOString(),
       },
     });
