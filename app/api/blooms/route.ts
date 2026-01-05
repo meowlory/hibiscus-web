@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import type { Bloom } from '@prisma/client';
 
 export interface BloomMetadata {
   id: number;
@@ -22,7 +21,7 @@ export async function GET() {
       },
     });
 
-    const bloomsResponse: BloomMetadata[] = blooms.map((bloom: Bloom): BloomMetadata => ({
+    const bloomsResponse: BloomMetadata[] = blooms.map((bloom: any): BloomMetadata => ({
       id: bloom.id,
       url: bloom.url,
       pathname: bloom.pathname,
