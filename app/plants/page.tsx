@@ -384,8 +384,28 @@ export default function PlantsPage() {
                               />
                               <button
                                 onClick={() => handleUnassignBloom(bloom.id)}
-                                className="absolute top-2 right-2 w-8 h-8 bg-gray-700 hover:bg-gray-800 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-xs font-medium z-10"
                                 aria-label="Unassign bloom from plant"
+                                style={{
+                                  position: 'absolute',
+                                  top: '8px',
+                                  right: '8px',
+                                  width: '32px',
+                                  height: '32px',
+                                  backgroundColor: 'rgb(55, 65, 81)',
+                                  color: 'white',
+                                  borderRadius: '50%',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  zIndex: 999,
+                                  opacity: 1,
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgb(31, 41, 55)'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgb(55, 65, 81)'}
                               >
                                 ✕
                               </button>
