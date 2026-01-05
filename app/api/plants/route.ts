@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export interface HealthIssue {
+  issue: string;
+  startDate: string;
+  endDate?: string | null;
+}
+
 export interface Plant {
   id: number;
   name: string;
   description: string;
-  healthIssues: string[];
+  healthIssues: HealthIssue[];
   createdAt: string;
 }
 

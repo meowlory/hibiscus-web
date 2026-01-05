@@ -3,11 +3,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+interface HealthIssue {
+  issue: string;
+  startDate: string;
+  endDate?: string | null;
+}
+
 interface Plant {
   id: number;
   name: string;
   description: string;
-  healthIssues: string[];
+  healthIssues: HealthIssue[];
   createdAt: string;
 }
 
@@ -29,6 +35,8 @@ export default function PlantsPage() {
   const [selectedPlant, setSelectedPlant] = useState<number | null>(null);
   const [editingPlant, setEditingPlant] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ name: '', description: '' });
+  const [editingHealth, setEditingHealth] = useState<{ plantId: number; issue: string } | null>(null);
+  const [healthDates, setHealthDates] = useState({ startDate: '', endDate: '' });
 
   useEffect(() => {
     fetchData();
@@ -118,33 +126,97 @@ export default function PlantsPage() {
     }
   };
 
-  const handleToggleHealthIssue = async (plantId: number, issue: string) => {
+  const handleToggleHealthIssue = (plantId: number, issue: string) => {
     const plant = plants.find(p => p.id === plantId);
     if (!plant) return;
 
+    const existingIssue = plant.healthIssues?.find(h => h.issue === issue);
+
+    if (existingIssue) {
+      // Issue exists, show form to edit dates or remove
+      setEditingHealth({ plantId, issue });
+      setHealthDates({
+        startDate: existingIssue.startDate,
+        endDate: existingIssue.endDate || '',
+      });
+    } else {
+      // New issue, show form to add dates
+      setEditingHealth({ plantId, issue });
+      setHealthDates({
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: '',
+      });
+    }
+  };
+
+  const handleSaveHealthIssue = async () => {
+    if (!editingHealth) return;
+
+    const plant = plants.find(p => p.id === editingHealth.plantId);
+    if (!plant) return;
+
     const currentIssues = plant.healthIssues || [];
-    const newIssues = currentIssues.includes(issue)
-      ? currentIssues.filter(i => i !== issue)
-      : [...currentIssues, issue];
+    const newIssues = currentIssues.filter(h => h.issue !== editingHealth.issue);
+
+    if (healthDates.startDate) {
+      newIssues.push({
+        issue: editingHealth.issue,
+        startDate: healthDates.startDate,
+        endDate: healthDates.endDate || null,
+      });
+    }
 
     try {
       const response = await fetch('/api/plants', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: plantId,
+          id: editingHealth.plantId,
           healthIssues: newIssues,
         }),
       });
 
       if (response.ok) {
         await fetchData();
+        setEditingHealth(null);
+        setHealthDates({ startDate: '', endDate: '' });
       } else {
         alert('Failed to update health status');
       }
     } catch (error) {
       console.error('Error updating health status:', error);
       alert('Failed to update health status');
+    }
+  };
+
+  const handleRemoveHealthIssue = async () => {
+    if (!editingHealth) return;
+
+    const plant = plants.find(p => p.id === editingHealth.plantId);
+    if (!plant) return;
+
+    const newIssues = (plant.healthIssues || []).filter(h => h.issue !== editingHealth.issue);
+
+    try {
+      const response = await fetch('/api/plants', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingHealth.plantId,
+          healthIssues: newIssues,
+        }),
+      });
+
+      if (response.ok) {
+        await fetchData();
+        setEditingHealth(null);
+        setHealthDates({ startDate: '', endDate: '' });
+      } else {
+        alert('Failed to remove health issue');
+      }
+    } catch (error) {
+      console.error('Error removing health issue:', error);
+      alert('Failed to remove health issue');
     }
   };
 
@@ -364,9 +436,12 @@ export default function PlantsPage() {
 
                   <div className="mb-4">
                     <h4 className="text-lg font-medium text-gray-900 mb-3">Health</h4>
-                    <div className="flex flex-wrap gap-2">
+
+                    {/* Health issue buttons */}
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {['Aphids', 'Root Rot', 'White Flies', 'Not Enough Sunlight', 'Other'].map((issue) => {
-                        const isSelected = plant.healthIssues?.includes(issue);
+                        const healthIssue = plant.healthIssues?.find(h => h.issue === issue);
+                        const isSelected = !!healthIssue;
                         return (
                           <button
                             key={issue}
@@ -382,6 +457,80 @@ export default function PlantsPage() {
                         );
                       })}
                     </div>
+
+                    {/* Active health issues with dates */}
+                    {plant.healthIssues && plant.healthIssues.length > 0 && (
+                      <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                        <p className="text-sm font-medium text-gray-700">Active Issues:</p>
+                        {plant.healthIssues.map((healthIssue, index) => (
+                          <div key={index} className="text-sm text-gray-600 flex justify-between items-center">
+                            <span>
+                              <strong>{healthIssue.issue}</strong> - Started: {new Date(healthIssue.startDate).toLocaleDateString()}
+                              {healthIssue.endDate && ` | Ended: ${new Date(healthIssue.endDate).toLocaleDateString()}`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Date picker modal */}
+                    {editingHealth && editingHealth.plantId === plant.id && (
+                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                          <h3 className="text-xl font-semibold mb-4">
+                            {editingHealth.issue}
+                          </h3>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Start Date *
+                              </label>
+                              <input
+                                type="date"
+                                value={healthDates.startDate}
+                                onChange={(e) => setHealthDates({ ...healthDates, startDate: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                End Date (optional - leave blank if ongoing)
+                              </label>
+                              <input
+                                type="date"
+                                value={healthDates.endDate}
+                                onChange={(e) => setHealthDates({ ...healthDates, endDate: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div className="flex gap-2 pt-2">
+                              <button
+                                onClick={handleSaveHealthIssue}
+                                className="flex-1 bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition-colors"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={handleRemoveHealthIssue}
+                                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                              >
+                                Remove
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingHealth(null);
+                                  setHealthDates({ startDate: '', endDate: '' });
+                                }}
+                                className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mb-4">
