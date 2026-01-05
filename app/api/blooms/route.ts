@@ -21,7 +21,7 @@ export async function GET() {
       },
     });
 
-    const bloomsResponse: BloomMetadata[] = blooms.map(bloom => ({
+    const bloomsResponse: BloomMetadata[] = blooms.map((bloom): BloomMetadata => ({
       id: bloom.id,
       url: bloom.url,
       pathname: bloom.pathname,

@@ -20,7 +20,7 @@ export async function GET() {
       },
     });
 
-    const plantsResponse: Plant[] = plants.map(plant => ({
+    const plantsResponse: Plant[] = plants.map((plant): Plant => ({
       id: plant.id,
       name: plant.name,
       description: plant.description || '',
