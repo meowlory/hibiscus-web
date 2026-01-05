@@ -1,36 +1,161 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌺 Hibiscus Tracker
+
+A web application to track and organize beautiful hibiscus bloom photos. Built with Next.js, PostgreSQL, and Vercel.
+
+## Features
+
+- 📸 Upload hibiscus bloom photos
+- 🌿 Create and manage plants
+- 🏷️ Organize blooms by plant
+- 🗄️ PostgreSQL database with Prisma ORM
+- ☁️ Vercel Blob storage for images
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Database**: PostgreSQL (Supabase)
+- **ORM**: Prisma 7
+- **Storage**: Vercel Blob
+- **Deployment**: Vercel
+- **Styling**: Tailwind CSS
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ installed
+- npm or yarn
+- Git
+
+### Setup Instructions
+
+1. **Clone the repository**
+   ```bash
+   git clone git@github.com:meowlory/hibiscus-web.git
+   cd hibiscus-web
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+
+   Create a `.env.local` file in the root directory. Ask a project maintainer for the credentials.
+
+4. **Generate Prisma Client**
+   ```bash
+   npx prisma generate
+   ```
+
+5. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open in browser**
+
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Database
+
+The app uses PostgreSQL (hosted on Supabase) with Prisma ORM.
+
+### Database Schema
+
+- **Plants**: Store hibiscus plant information
+  - `id`: Auto-incrementing ID
+  - `name`: Plant name
+  - `description`: Optional description
+  - `createdAt`, `updatedAt`: Timestamps
+
+- **Blooms**: Store bloom photo metadata
+  - `id`: Auto-incrementing ID
+  - `url`: Vercel Blob storage URL
+  - `pathname`: File path in blob storage
+  - `uploadedAt`: Upload timestamp
+  - `plantId`: Foreign key to plants (optional)
+
+### Migrations
+
+Migrations are already applied to the production database. If you need to run them locally:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx prisma migrate dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Development Workflow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Create a new branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Make your changes**
 
-## Learn More
+   Edit code, test locally with `npm run dev`
 
-To learn more about Next.js, take a look at the following resources:
+3. **Commit your changes**
+   ```bash
+   git add .
+   git commit -m "Description of your changes"
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. **Push to GitHub**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. **Create a Pull Request**
 
-## Deploy on Vercel
+   Go to GitHub and create a PR from your branch to `main`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+6. **Deploy**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Once merged to `main`, Vercel will automatically deploy to production
+
+## Project Structure
+
+```
+hibiscus-web/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   │   ├── blooms/        # Bloom endpoints
+│   │   ├── plants/        # Plant endpoints
+│   │   └── upload/        # Upload endpoint
+│   ├── blooms/            # Bloom gallery page
+│   ├── plants/            # Plants page
+│   └── page.tsx           # Home page
+├── lib/                   # Shared utilities
+│   └── prisma.ts          # Prisma client singleton
+├── prisma/                # Database
+│   ├── schema.prisma      # Database schema
+│   └── migrations/        # Migration files
+└── public/                # Static assets
+```
+
+## Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npx prisma studio` - Open Prisma Studio (database GUI)
+- `npx prisma migrate dev` - Run database migrations
+
+## Production
+
+- **Live App**: https://hibiscus-web.vercel.app
+- **Vercel Dashboard**: https://vercel.com/brady-ai/hibiscus-web
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+Private project - All rights reserved
