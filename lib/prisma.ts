@@ -9,15 +9,20 @@ const globalForPrisma = globalThis as unknown as {
 
 // Create connection pool
 if (!globalForPrisma.pool) {
-  const connectionString = process.env.NODE_ENV === 'production'
+  let connectionString = process.env.NODE_ENV === 'production'
     ? process.env.POSTGRES_PRISMA_URL
     : process.env.POSTGRES_URL_NON_POOLING;
 
+  // Remove sslmode parameter from connection string and handle it with pool config
+  if (connectionString) {
+    connectionString = connectionString.replace(/[?&]sslmode=require/g, '');
+  }
+
   globalForPrisma.pool = new Pool({
     connectionString,
-    ssl: process.env.NODE_ENV === 'production'
-      ? { rejectUnauthorized: false }
-      : { rejectUnauthorized: false },
+    ssl: {
+      rejectUnauthorized: false,
+    },
   });
 
   // Set connection error handling
