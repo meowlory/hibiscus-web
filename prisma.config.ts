@@ -14,7 +14,4 @@ export default defineConfig({
   datasource: {
     url: process.env["POSTGRES_URL_NON_POOLING"],
   },
-  client: {
-    url: process.env["POSTGRES_PRISMA_URL"],
-  },
 });
